@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+<?php
+
+$autoloadCandidates = [
+    __DIR__.'/../vendor/autoload.php',
+    __DIR__.'/../../../autoload.php',
+];
+
+foreach ($autoloadCandidates as $autoload) {
+    if (file_exists($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+use Boilerplate\Installer\Console\NewCommand;
+use Symfony\Component\Console\Application;
+
+$app = new Application('boilerplate', 'dev');
+$app->add(new NewCommand());
+$app->setDefaultCommand('new');
+
+exit($app->run());

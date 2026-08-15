@@ -1,0 +1,31 @@
+{
+    "name": "ferrazrezende/boilerplate-installer",
+    "description": "CLI installer for FerrazRezende/laravel-boilerplate",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "symfony/console": "^7.0",
+        "symfony/process": "^7.0",
+        "symfony/filesystem": "^7.0",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "license": "MIT",
+    "bin": [
+        "bin/boilerplate"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Boilerplate\\Installer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Boilerplate\\Installer\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
