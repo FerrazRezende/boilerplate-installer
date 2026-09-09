@@ -3,7 +3,6 @@
 namespace Boilerplate\Installer\Tests;
 
 use Boilerplate\Installer\GitHubTarball;
-use Boilerplate\Installer\GitHubTokenResolver;
 use Boilerplate\Installer\RepositoryAccessException;
 use Boilerplate\Installer\Tests\Support\FakeHttpDownloader;
 use PHPUnit\Framework\TestCase;
@@ -26,24 +25,6 @@ class GitHubTarballTest extends TestCase
         (new \Symfony\Component\Filesystem\Filesystem())->remove($this->workDir);
     }
 
-    private function resolverWithToken(string $token): GitHubTokenResolver
-    {
-        return new GitHubTokenResolver(
-            env: ['GITHUB_TOKEN' => $token],
-            ghAuthToken: fn () => null,
-            composerAuthJsonPath: '/nonexistent/auth.json',
-        );
-    }
-
-    private function resolverWithoutToken(): GitHubTokenResolver
-    {
-        return new GitHubTokenResolver(
-            env: [],
-            ghAuthToken: fn () => null,
-            composerAuthJsonPath: '/nonexistent/auth.json',
-        );
-    }
-
     /** Builds a tar.gz whose contents mimic a GitHub codeload tarball (single wrapping directory). */
     private function buildFixtureTarball(): string
     {
@@ -63,10 +44,9 @@ class GitHubTarballTest extends TestCase
 
     public function test_it_downloads_and_extracts_stripping_the_wrapping_directory(): void
     {
-        $tarballBytes = $this->buildFixtureTarball();
-        $http = new FakeHttpDownloader(responseBody: $tarballBytes);
+        $http = new FakeHttpDownloader(responseBody: $this->buildFixtureTarball());
 
-        (new GitHubTarball($http, $this->resolverWithToken('secret-token')))
+        (new GitHubTarball($http))
             ->download('FerrazRezende/laravel-boilerplate', 'main', $this->destinationDir);
 
         $this->assertFileExists($this->destinationDir.'/composer.json');
@@ -77,39 +57,41 @@ class GitHubTarballTest extends TestCase
         );
     }
 
-    public function test_it_sends_the_token_as_a_bearer_header(): void
+    public function test_it_asks_github_anonymously(): void
     {
         $http = new FakeHttpDownloader(responseBody: $this->buildFixtureTarball());
 
-        (new GitHubTarball($http, $this->resolverWithToken('secret-token')))
+        (new GitHubTarball($http))
             ->download('FerrazRezende/laravel-boilerplate', 'main', $this->destinationDir);
 
-        $this->assertSame('Bearer secret-token', $http->requestedHeaders['Authorization']);
+        // The repositories are public. Sending credentials would put the
+        // installer back to needing a GitHub account to run.
+        $this->assertArrayNotHasKey('Authorization', $http->requestedHeaders);
         $this->assertSame(
             'https://api.github.com/repos/FerrazRezende/laravel-boilerplate/tarball/main',
             $http->requestedUrl,
         );
     }
 
-    public function test_it_raises_a_clear_error_when_no_credentials_are_available(): void
-    {
-        $http = new FakeHttpDownloader();
-
-        $this->expectException(RepositoryAccessException::class);
-        $this->expectExceptionMessageMatches('/GITHUB_TOKEN|gh auth login/');
-
-        (new GitHubTarball($http, $this->resolverWithoutToken()))
-            ->download('FerrazRezende/laravel-boilerplate', 'main', $this->destinationDir);
-    }
-
-    public function test_it_maps_a_404_to_a_repository_access_error(): void
+    public function test_it_explains_a_404_as_a_bad_ref(): void
     {
         $http = new FakeHttpDownloader(failWithStatus: 404);
 
         $this->expectException(RepositoryAccessException::class);
-        $this->expectExceptionMessageMatches('/FerrazRezende\/laravel-boilerplate/');
+        $this->expectExceptionMessageMatches('/--ref/');
 
-        (new GitHubTarball($http, $this->resolverWithToken('secret-token')))
+        (new GitHubTarball($http))
+            ->download('FerrazRezende/laravel-boilerplate', 'nope', $this->destinationDir);
+    }
+
+    public function test_it_explains_a_403_as_the_anonymous_rate_limit(): void
+    {
+        $http = new FakeHttpDownloader(failWithStatus: 403);
+
+        $this->expectException(RepositoryAccessException::class);
+        $this->expectExceptionMessageMatches('/limite de uso/');
+
+        (new GitHubTarball($http))
             ->download('FerrazRezende/laravel-boilerplate', 'main', $this->destinationDir);
     }
 }

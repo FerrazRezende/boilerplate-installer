@@ -5,7 +5,6 @@ namespace Boilerplate\Installer\Console;
 use Boilerplate\Installer\AiRecipe;
 use Boilerplate\Installer\DestinationExistsException;
 use Boilerplate\Installer\GitHubTarball;
-use Boilerplate\Installer\GitHubTokenResolver;
 use Boilerplate\Installer\GuzzleHttpDownloader;
 use Boilerplate\Installer\Installer;
 use Boilerplate\Installer\PartialInstallException;
@@ -19,7 +18,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Process\Process;
 
 class NewCommand extends Command
 {
@@ -40,7 +38,7 @@ class NewCommand extends Command
 
         $runner = new SymfonyProcessRunner($output);
         $installer = new Installer(
-            downloader: new GitHubTarball(new GuzzleHttpDownloader(new Client()), $this->tokenResolver()),
+            downloader: new GitHubTarball(new GuzzleHttpDownloader(new Client())),
             runner: $runner,
             aiRecipe: new AiRecipe($runner),
         );
@@ -78,21 +76,5 @@ class NewCommand extends Command
         ]);
 
         return Command::SUCCESS;
-    }
-
-    private function tokenResolver(): GitHubTokenResolver
-    {
-        return new GitHubTokenResolver(
-            env: array_filter([
-                'GITHUB_TOKEN' => getenv('GITHUB_TOKEN') ?: null,
-            ]),
-            ghAuthToken: function (): ?string {
-                $process = new Process(['gh', 'auth', 'token']);
-                $process->run();
-
-                return $process->isSuccessful() ? trim($process->getOutput()) : null;
-            },
-            composerAuthJsonPath: (getenv('COMPOSER_HOME') ?: (getenv('HOME').'/.config/composer')).'/auth.json',
-        );
     }
 }

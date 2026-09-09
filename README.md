@@ -1,18 +1,17 @@
 # boilerplate-installer
 
-CLI para criar novos projetos a partir do [`FerrazRezende/laravel-boilerplate`](https://github.com/FerrazRezende/laravel-boilerplate) (repositório privado).
+CLI para criar novos projetos a partir do [`FerrazRezende/laravel-boilerplate`](https://github.com/FerrazRezende/laravel-boilerplate).
+
+Ambos os repositórios são públicos: não é preciso conta no GitHub, chave SSH nem token para instalar ou usar.
 
 ## Instalação (uma vez por máquina)
 
-Sem uma chave SSH cadastrada no GitHub, use HTTPS com um token OAuth (o [GitHub CLI](https://cli.github.com) já autenticado resolve isso):
+O pacote ainda não está no Packagist, então registre o repositório antes de instalar:
 
 ```bash
-composer global config github-oauth.github.com "$(gh auth token)"
 composer global config repositories.boilerplate vcs https://github.com/FerrazRezende/boilerplate-installer.git
 composer global require ferrazrezende/boilerplate-installer
 ```
-
-Se preferir SSH, troque a segunda linha por `git@github.com:FerrazRezende/boilerplate-installer.git` — mas isso exige uma chave SSH configurada no GitHub.
 
 Garanta que `~/.composer/vendor/bin` (ou `~/.config/composer/vendor/bin`) esteja no `PATH`.
 
@@ -29,13 +28,18 @@ Opções:
 - `--ref=<branch|tag|sha>` — versão do boilerplate a baixar (padrão `main`).
 - `--force` — sobrescreve o diretório de destino se ele já existir e não estiver vazio.
 
-## Autenticação com o GitHub
+Depois de criar o projeto:
 
-O boilerplate é privado, então o instalador precisa de um token com acesso ao repositório. Ele tenta, nesta ordem:
+```bash
+cd meu-app
+make setup
+```
 
-1. variável de ambiente `GITHUB_TOKEN`;
-2. `gh auth token` (se o [GitHub CLI](https://cli.github.com) estiver autenticado);
-3. `github-oauth` do `auth.json` do Composer.
+## Limite de uso da API do GitHub
+
+O download é anônimo e a API do GitHub permite 60 chamadas por hora por IP. Isso é
+folgado para uso normal, mas pode apertar em CI compartilhado. Se bater o limite,
+o instalador diz isso explicitamente em vez de falhar de forma obscura.
 
 ## Desenvolvimento
 
