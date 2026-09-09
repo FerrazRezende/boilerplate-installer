@@ -17,7 +17,7 @@ use Boilerplate\Installer\Console\NewCommand;
 use Symfony\Component\Console\Application;
 
 $app = new Application('boilerplate', 'dev');
-$app->add(new NewCommand());
+$app->addCommand(new NewCommand());
 $app->setDefaultCommand('new');
 
 exit($app->run());
