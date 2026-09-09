@@ -6,10 +6,7 @@ Ambos os repositórios são públicos: não é preciso conta no GitHub, chave SS
 
 ## Instalação (uma vez por máquina)
 
-O pacote ainda não está no Packagist, então registre o repositório antes de instalar:
-
 ```bash
-composer global config repositories.boilerplate vcs https://github.com/FerrazRezende/boilerplate-installer.git
 composer global require ferrazrezende/boilerplate-installer
 ```
 
