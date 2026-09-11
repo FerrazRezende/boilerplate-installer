@@ -16,10 +16,18 @@ Garanta que `~/.composer/vendor/bin` (ou `~/.config/composer/vendor/bin`) esteja
 
 ```bash
 boilerplate new meu-app
-boilerplate new meu-app --mvc    # layout Laravel plano, sem módulos
+boilerplate new meu-app --mvc          # layout Laravel plano, sem módulos
+boilerplate new meu-app --obs          # com observabilidade de jobs
+boilerplate new meu-app --obs --mvc    # as opções combinam
 ```
 
 Opções:
+
+- `--obs` — inclui o módulo de observabilidade: uma trait `TracksProgress` que
+  os jobs usam para reportar quanto falta, o progresso guardado no Redis e
+  transmitido por Reverb, e a tela `/system/jobs` com as barras ao vivo. O
+  Horizon continua sendo o lugar de investigar falhas; esta tela é a visão ao
+  vivo, e linka para ele.
 
 - `--mvc` — converte o projeto para o layout MVC padrão do Laravel: tudo em
   `app/` com namespace `App\`, rotas em `routes/`, traduções em `lang/` e as

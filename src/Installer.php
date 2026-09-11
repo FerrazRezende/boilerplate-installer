@@ -17,8 +17,21 @@ class Installer
         $this->filesystem = $filesystem ?? new Filesystem();
     }
 
-    public function install(string $targetPath, string $ref = 'main', bool $force = false, bool $withMvc = false): void
-    {
+    /**
+     * Optional features ship enabled in the boilerplate and are stripped here
+     * when they were not asked for, which keeps them developed and tested like
+     * any other code instead of living as templates in this package.
+     *
+     * Order matters: strip first, flatten last. That way --mvc never needs to
+     * know which optional features exist, and they never need to know about it.
+     */
+    public function install(
+        string $targetPath,
+        string $ref = 'main',
+        bool $force = false,
+        bool $withMvc = false,
+        bool $withObs = false,
+    ): void {
         $this->assertDestinationIsUsable($targetPath, $force);
 
         $tmpDir = sys_get_temp_dir().'/boilerplate-new-'.uniqid();
@@ -27,6 +40,11 @@ class Installer
         try {
             $this->filesystem->copy($tmpDir.'/.env.example', $tmpDir.'/.env');
             $this->runner->run(['composer', 'install'], $tmpDir);
+
+            if (! $withObs) {
+                $this->runner->run(['php', 'scripts/remove-feature.php', 'Observability'], $tmpDir);
+                $this->runner->run(['composer', 'dump-autoload'], $tmpDir);
+            }
 
             if ($withMvc) {
                 // The flattener lives in the boilerplate, next to the structure

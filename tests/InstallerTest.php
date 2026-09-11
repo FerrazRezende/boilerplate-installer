@@ -63,7 +63,8 @@ class InstallerTest extends TestCase
     {
         $runner = new FakeProcessRunner();
 
-        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath, withMvc: true);
+        $this->makeInstaller($runner, new FakeProjectDownloader())
+            ->install($this->targetPath, withMvc: true, withObs: true);
 
         $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
 
@@ -72,6 +73,41 @@ class InstallerTest extends TestCase
         $this->assertSame(
             ['composer install', 'php scripts/to-mvc.php', 'composer remove nwidart/laravel-modules --no-interaction'],
             array_slice($commands, 0, 3),
+        );
+    }
+
+    public function test_it_strips_observability_unless_asked_for(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+        $this->assertContains('php scripts/remove-feature.php Observability', $commands);
+    }
+
+    public function test_it_keeps_observability_when_asked_for(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath, withObs: true);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+        $this->assertNotContains('php scripts/remove-feature.php Observability', $commands);
+    }
+
+    public function test_optional_features_are_stripped_before_the_tree_is_flattened(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath, withMvc: true);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+
+        // The flattener walks whatever modules survive, so it has to run last.
+        $this->assertLessThan(
+            array_search('php scripts/to-mvc.php', $commands, true),
+            array_search('php scripts/remove-feature.php Observability', $commands, true),
         );
     }
 
