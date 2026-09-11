@@ -42,6 +42,10 @@ class Installer
             $this->filesystem->copy($tmpDir.'/.env.example', $tmpDir.'/.env');
             $this->runner->run(['composer', 'install'], $tmpDir);
 
+            // MODULES.md, AI.md and QUEUES.md explain the boilerplate on its
+            // GitHub page; a project generated from it has no use for them.
+            $this->runner->run(['php', 'scripts/strip-repo-docs.php'], $tmpDir);
+
             if (! $withAi) {
                 $this->runner->run(['php', 'scripts/remove-feature.php', 'Ai'], $tmpDir);
                 // Dropping the package also regenerates the autoloader.

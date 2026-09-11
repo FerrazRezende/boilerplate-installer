@@ -49,6 +49,17 @@ class InstallerTest extends TestCase
         $this->assertContains('npm install', $commands);
     }
 
+    public function test_it_always_strips_the_repo_only_documentation(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())
+            ->install($this->targetPath, withMvc: true, withObs: true, withAi: true);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+        $this->assertContains('php scripts/strip-repo-docs.php', $commands);
+    }
+
     public function test_it_keeps_the_modular_layout_by_default(): void
     {
         $runner = new FakeProcessRunner();
@@ -71,8 +82,13 @@ class InstallerTest extends TestCase
         // The flattener needs vendor/ in place (it ends with a Pint pass), and
         // nwidart can only be dropped once nothing references it any more.
         $this->assertSame(
-            ['composer install', 'php scripts/to-mvc.php', 'composer remove nwidart/laravel-modules --no-interaction'],
-            array_slice($commands, 0, 3),
+            [
+                'composer install',
+                'php scripts/strip-repo-docs.php',
+                'php scripts/to-mvc.php',
+                'composer remove nwidart/laravel-modules --no-interaction',
+            ],
+            array_slice($commands, 0, 4),
         );
     }
 
