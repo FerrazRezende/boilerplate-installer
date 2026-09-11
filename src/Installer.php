@@ -11,14 +11,13 @@ class Installer
     public function __construct(
         private ProjectDownloader $downloader,
         private ProcessRunner $runner,
-        private AiRecipe $aiRecipe,
         private string $repo = 'FerrazRezende/laravel-boilerplate',
         ?Filesystem $filesystem = null,
     ) {
         $this->filesystem = $filesystem ?? new Filesystem();
     }
 
-    public function install(string $targetPath, bool $withAi = false, string $ref = 'main', bool $force = false): void
+    public function install(string $targetPath, string $ref = 'main', bool $force = false): void
     {
         $this->assertDestinationIsUsable($targetPath, $force);
 
@@ -28,11 +27,6 @@ class Installer
         try {
             $this->filesystem->copy($tmpDir.'/.env.example', $tmpDir.'/.env');
             $this->runner->run(['composer', 'install'], $tmpDir);
-
-            if ($withAi) {
-                $this->aiRecipe->apply($tmpDir);
-            }
-
             $this->runner->run(['php', 'artisan', 'key:generate'], $tmpDir);
             $this->runner->run(['npm', 'install'], $tmpDir);
         } catch (\Throwable $exception) {

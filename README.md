@@ -16,12 +16,10 @@ Garanta que `~/.composer/vendor/bin` (ou `~/.config/composer/vendor/bin`) esteja
 
 ```bash
 boilerplate new meu-app
-boilerplate new meu-app --ai      # inclui o Laravel AI SDK (laravel/ai) já configurado
 ```
 
 Opções:
 
-- `--ai` — roda `composer require laravel/ai`, publica config/migrations e adiciona as chaves de provider (vazias) ao `.env`/`.env.example`.
 - `--ref=<branch|tag|sha>` — versão do boilerplate a baixar (padrão `main`).
 - `--force` — sobrescreve o diretório de destino se ele já existir e não estiver vazio.
 

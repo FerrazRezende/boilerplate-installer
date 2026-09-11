@@ -2,7 +2,6 @@
 
 namespace Boilerplate\Installer\Console;
 
-use Boilerplate\Installer\AiRecipe;
 use Boilerplate\Installer\DestinationExistsException;
 use Boilerplate\Installer\GitHubTarball;
 use Boilerplate\Installer\GuzzleHttpDownloader;
@@ -26,7 +25,6 @@ class NewCommand extends Command
         $this->setName('new')
             ->setDescription('Cria um novo projeto a partir do laravel-boilerplate')
             ->addArgument('path', InputArgument::REQUIRED, 'Diretório do novo projeto')
-            ->addOption('ai', null, InputOption::VALUE_NONE, 'Instala e configura o Laravel AI SDK (laravel/ai)')
             ->addOption('ref', null, InputOption::VALUE_REQUIRED, 'Branch, tag ou commit do boilerplate', 'main')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Sobrescreve o diretório de destino se já existir');
     }
@@ -40,7 +38,6 @@ class NewCommand extends Command
         $installer = new Installer(
             downloader: new GitHubTarball(new GuzzleHttpDownloader(new Client())),
             runner: $runner,
-            aiRecipe: new AiRecipe($runner),
         );
 
         $io->title('Criando projeto Laravel Boilerplate');
@@ -48,7 +45,6 @@ class NewCommand extends Command
         try {
             $installer->install(
                 targetPath: $targetPath,
-                withAi: (bool) $input->getOption('ai'),
                 ref: (string) $input->getOption('ref'),
                 force: (bool) $input->getOption('force'),
             );

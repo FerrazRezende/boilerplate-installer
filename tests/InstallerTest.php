@@ -2,7 +2,6 @@
 
 namespace Boilerplate\Installer\Tests;
 
-use Boilerplate\Installer\AiRecipe;
 use Boilerplate\Installer\DestinationExistsException;
 use Boilerplate\Installer\Installer;
 use Boilerplate\Installer\PartialInstallException;
@@ -30,7 +29,7 @@ class InstallerTest extends TestCase
 
     private function makeInstaller(FakeProcessRunner $runner, FakeProjectDownloader $downloader): Installer
     {
-        return new Installer($downloader, $runner, new AiRecipe($runner));
+        return new Installer($downloader, $runner);
     }
 
     public function test_it_downloads_installs_dependencies_and_moves_the_project_to_the_target_path(): void
@@ -48,30 +47,6 @@ class InstallerTest extends TestCase
         $this->assertContains('composer install', $commands);
         $this->assertContains('php artisan key:generate', $commands);
         $this->assertContains('npm install', $commands);
-    }
-
-    public function test_it_does_not_apply_the_ai_recipe_by_default(): void
-    {
-        $runner = new FakeProcessRunner();
-
-        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath);
-
-        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
-        $this->assertNotContains('composer require laravel/ai', $commands);
-    }
-
-    public function test_it_applies_the_ai_recipe_when_requested(): void
-    {
-        $runner = new FakeProcessRunner();
-
-        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath, withAi: true);
-
-        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
-        $this->assertContains('composer require laravel/ai', $commands);
-        $this->assertStringContainsString(
-            'ANTHROPIC_API_KEY=',
-            file_get_contents($this->targetPath.'/.env'),
-        );
     }
 
     public function test_it_refuses_to_overwrite_a_non_empty_existing_directory_without_force(): void
