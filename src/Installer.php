@@ -31,6 +31,7 @@ class Installer
         bool $force = false,
         bool $withMvc = false,
         bool $withObs = false,
+        bool $withAi = false,
     ): void {
         $this->assertDestinationIsUsable($targetPath, $force);
 
@@ -40,6 +41,12 @@ class Installer
         try {
             $this->filesystem->copy($tmpDir.'/.env.example', $tmpDir.'/.env');
             $this->runner->run(['composer', 'install'], $tmpDir);
+
+            if (! $withAi) {
+                $this->runner->run(['php', 'scripts/remove-feature.php', 'Ai'], $tmpDir);
+                // Dropping the package also regenerates the autoloader.
+                $this->runner->run(['composer', 'remove', 'laravel/ai', '--no-interaction'], $tmpDir);
+            }
 
             if (! $withObs) {
                 $this->runner->run(['php', 'scripts/remove-feature.php', 'Observability'], $tmpDir);

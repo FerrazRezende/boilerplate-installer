@@ -64,7 +64,7 @@ class InstallerTest extends TestCase
         $runner = new FakeProcessRunner();
 
         $this->makeInstaller($runner, new FakeProjectDownloader())
-            ->install($this->targetPath, withMvc: true, withObs: true);
+            ->install($this->targetPath, withMvc: true, withObs: true, withAi: true);
 
         $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
 
@@ -74,6 +74,28 @@ class InstallerTest extends TestCase
             ['composer install', 'php scripts/to-mvc.php', 'composer remove nwidart/laravel-modules --no-interaction'],
             array_slice($commands, 0, 3),
         );
+    }
+
+    public function test_it_strips_the_assistant_unless_asked_for(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+        $this->assertContains('php scripts/remove-feature.php Ai', $commands);
+        $this->assertContains('composer remove laravel/ai --no-interaction', $commands);
+    }
+
+    public function test_it_keeps_the_assistant_when_asked_for(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath, withAi: true);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+        $this->assertNotContains('php scripts/remove-feature.php Ai', $commands);
+        $this->assertNotContains('composer remove laravel/ai --no-interaction', $commands);
     }
 
     public function test_it_strips_observability_unless_asked_for(): void
@@ -103,12 +125,12 @@ class InstallerTest extends TestCase
         $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath, withMvc: true);
 
         $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+        $flatten = array_search('php scripts/to-mvc.php', $commands, true);
 
         // The flattener walks whatever modules survive, so it has to run last.
-        $this->assertLessThan(
-            array_search('php scripts/to-mvc.php', $commands, true),
-            array_search('php scripts/remove-feature.php Observability', $commands, true),
-        );
+        foreach (['Ai', 'Observability'] as $module) {
+            $this->assertLessThan($flatten, array_search("php scripts/remove-feature.php {$module}", $commands, true));
+        }
     }
 
     public function test_it_refuses_to_overwrite_a_non_empty_existing_directory_without_force(): void

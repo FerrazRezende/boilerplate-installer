@@ -15,11 +15,15 @@ Garanta que `~/.composer/vendor/bin` (ou `~/.config/composer/vendor/bin`) esteja
 ## Uso
 
 ```bash
-boilerplate new meu-app
-boilerplate new meu-app --mvc          # layout Laravel plano, sem módulos
-boilerplate new meu-app --obs          # com observabilidade de jobs
+boilerplate new meu-app                # abre o seletor de opções
+boilerplate new meu-app --obs --ai     # ou passe as flags direto
 boilerplate new meu-app --obs --mvc    # as opções combinam
 ```
+
+Rodando sem nenhuma flag de feature num terminal, o instalador abre um seletor
+para você marcar o que quer. Flag passada explicitamente vence e pula o
+seletor, então script e CI se comportam exatamente como escrito;
+`--no-interaction` assume nenhuma feature.
 
 Opções:
 
@@ -28,6 +32,11 @@ Opções:
   transmitido por Reverb, e a tela `/system/jobs` com as barras ao vivo. O
   Horizon continua sendo o lugar de investigar falhas; esta tela é a visão ao
   vivo, e linka para ele.
+- `--ai` — inclui o assistente: o Laravel AI SDK configurado, com um balão de
+  chat no app e um chat na landing page. Preencha uma key de provider no `.env`
+  (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, …) e ele responde; sem key, os chats
+  informam que não estão configurados em vez de quebrar. O chat público é
+  limitado por IP, já que qualquer visitante o alcança.
 
 - `--mvc` — converte o projeto para o layout MVC padrão do Laravel: tudo em
   `app/` com namespace `App\`, rotas em `routes/`, traduções em `lang/` e as
