@@ -17,7 +17,7 @@ class Installer
         $this->filesystem = $filesystem ?? new Filesystem();
     }
 
-    public function install(string $targetPath, string $ref = 'main', bool $force = false): void
+    public function install(string $targetPath, string $ref = 'main', bool $force = false, bool $withMvc = false): void
     {
         $this->assertDestinationIsUsable($targetPath, $force);
 
@@ -27,6 +27,15 @@ class Installer
         try {
             $this->filesystem->copy($tmpDir.'/.env.example', $tmpDir.'/.env');
             $this->runner->run(['composer', 'install'], $tmpDir);
+
+            if ($withMvc) {
+                // The flattener lives in the boilerplate, next to the structure
+                // it rewrites, and deletes itself once done. It runs after
+                // composer install because it finishes with a Pint pass.
+                $this->runner->run(['php', 'scripts/to-mvc.php'], $tmpDir);
+                $this->runner->run(['composer', 'remove', 'nwidart/laravel-modules', '--no-interaction'], $tmpDir);
+            }
+
             $this->runner->run(['php', 'artisan', 'key:generate'], $tmpDir);
             $this->runner->run(['npm', 'install'], $tmpDir);
         } catch (\Throwable $exception) {

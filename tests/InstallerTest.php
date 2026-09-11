@@ -49,6 +49,32 @@ class InstallerTest extends TestCase
         $this->assertContains('npm install', $commands);
     }
 
+    public function test_it_keeps_the_modular_layout_by_default(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+        $this->assertNotContains('php scripts/to-mvc.php', $commands);
+    }
+
+    public function test_it_flattens_to_mvc_when_requested(): void
+    {
+        $runner = new FakeProcessRunner();
+
+        $this->makeInstaller($runner, new FakeProjectDownloader())->install($this->targetPath, withMvc: true);
+
+        $commands = array_map(fn ($call) => implode(' ', $call['command']), $runner->calls);
+
+        // The flattener needs vendor/ in place (it ends with a Pint pass), and
+        // nwidart can only be dropped once nothing references it any more.
+        $this->assertSame(
+            ['composer install', 'php scripts/to-mvc.php', 'composer remove nwidart/laravel-modules --no-interaction'],
+            array_slice($commands, 0, 3),
+        );
+    }
+
     public function test_it_refuses_to_overwrite_a_non_empty_existing_directory_without_force(): void
     {
         mkdir($this->targetPath, recursive: true);

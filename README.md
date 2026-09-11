@@ -16,10 +16,16 @@ Garanta que `~/.composer/vendor/bin` (ou `~/.config/composer/vendor/bin`) esteja
 
 ```bash
 boilerplate new meu-app
+boilerplate new meu-app --mvc    # layout Laravel plano, sem módulos
 ```
 
 Opções:
 
+- `--mvc` — converte o projeto para o layout MVC padrão do Laravel: tudo em
+  `app/` com namespace `App\`, rotas em `routes/`, traduções em `lang/` e as
+  páginas Vue em `resources/js/Pages`, sem `nwidart/laravel-modules`. A
+  conversão é feita pelo `scripts/to-mvc.php` do próprio boilerplate, que se
+  remove ao terminar.
 - `--ref=<branch|tag|sha>` — versão do boilerplate a baixar (padrão `main`).
 - `--force` — sobrescreve o diretório de destino se ele já existir e não estiver vazio.
 

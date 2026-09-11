@@ -25,6 +25,7 @@ class NewCommand extends Command
         $this->setName('new')
             ->setDescription('Cria um novo projeto a partir do laravel-boilerplate')
             ->addArgument('path', InputArgument::REQUIRED, 'Diretório do novo projeto')
+            ->addOption('mvc', null, InputOption::VALUE_NONE, 'Gera o projeto no layout MVC plano do Laravel, sem módulos')
             ->addOption('ref', null, InputOption::VALUE_REQUIRED, 'Branch, tag ou commit do boilerplate', 'main')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Sobrescreve o diretório de destino se já existir');
     }
@@ -47,6 +48,7 @@ class NewCommand extends Command
                 targetPath: $targetPath,
                 ref: (string) $input->getOption('ref'),
                 force: (bool) $input->getOption('force'),
+                withMvc: (bool) $input->getOption('mvc'),
             );
         } catch (DestinationExistsException|RepositoryAccessException $exception) {
             $io->error($exception->getMessage());
